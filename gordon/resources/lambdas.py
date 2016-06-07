@@ -185,6 +185,17 @@ class Lambda(base.BaseResource):
             Policies=self._get_policies()
         )
 
+    def get_vpc(self):
+        vpc = self.settings.get('vpc')
+
+        if isinstance(vpc, six.string_types) or \
+           isinstance(vpc, troposphere.Ref) or \
+           vpc is None:
+            return vpc
+        else:
+            raise exceptions.InvalidLambdaVPCError(self.name, vpc)
+
+
     def get_bucket_key(self):
         """Return the S3 bucket key for this lambda."""
         filename = '_'.join(self.in_project_name.split(':')[1:])
@@ -252,12 +263,16 @@ class Lambda(base.BaseResource):
         )
 
         extra = {}
-        if self.settings.get('vpc'):
-            vpc = self.project.get_resource('vpc::{}'.format(self.settings.get('vpc')))
-            extra['VpcConfig'] = awslambda.VPCConfig(
-                SecurityGroupIds=vpc.settings['security-groups'],
-                SubnetIds=vpc.settings['subnet-ids']
-            )
+        vpc = self.get_vpc()
+        if vpc:
+            if isinstance(vpc, six.string_types):
+                vpc = self.project.get_resource('vpc::{}'.format(self.settings.get('vpc')))
+                extra['VpcConfig'] = awslambda.VPCConfig(
+                    SecurityGroupIds=vpc.settings['security-groups'],
+                    SubnetIds=vpc.settings['subnet-ids']
+                )
+            else:
+                extra['VpcConfig'] = vpc
 
         function = template.add_resource(
             awslambda.Function(

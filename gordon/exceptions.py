@@ -174,3 +174,7 @@ class LambdaNotFound(BaseGordonException):
 class ValidationError(BaseGordonException):
     hint = u"  Validation Error: {}"
     code = 24
+
+class InvalidLambdaVPCError(BaseGordonException):
+    hint = u"Resource {} VPC is invalid '{}'"
+    code = 25
