@@ -174,3 +174,7 @@ class LambdaNotFound(BaseGordonException):
 class ValidationError(BaseGordonException):
     hint = u"  Validation Error: {}"
     code = 24
+
+class InvalidLambdaFunctionName(BaseGordonException):
+    hint = u"Lambda {} cannot have name {}"
+    code = 25

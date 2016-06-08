@@ -185,6 +185,47 @@ class Lambda(base.BaseResource):
             Policies=self._get_policies()
         )
 
+    def get_function_name(self):
+        """Returns the optional FunctionName this lambda should use for
+        deployment. If the ``function-name` field is provided in the lambda's
+        settings, the name uploaded will be in the format of:
+            "Fn::Join": [
+              "-",
+              [
+                  ``function-name``,
+                  {
+                    "Ref":"Stage"
+                  },
+                  {
+                    "Ref":"AWS::Region"
+                  }
+              ]
+            ]
+        ``function-name`` can be a ref or string"""
+
+        function_name = self.settings.get('function-name')
+
+        def _join_env_refs(value):
+            return troposphere.Join(
+                "-",
+                [
+                    value,
+                    troposphere.Ref("Stage"),
+                    troposphere.Ref(troposphere.AWS_REGION)
+                ])
+
+        if isinstance(function_name, six.string_types):
+            return _join_env_refs(utils.valid_cloudformation_name(self.app.name, function_name))
+        elif isinstance(function_name, troposphere.Ref):
+            return _join_env_refs(function_name)
+        elif function_name is None:
+            pass
+        else:
+            raise exceptions.InvalidLambdaFunctionName(self.name, function_name)
+
+
+
+
     def get_bucket_key(self):
         """Return the S3 bucket key for this lambda."""
         filename = '_'.join(self.in_project_name.split(':')[1:])
@@ -258,6 +299,9 @@ class Lambda(base.BaseResource):
                 SecurityGroupIds=vpc.settings['security-groups'],
                 SubnetIds=vpc.settings['subnet-ids']
             )
+        function_name = self.get_function_name()
+        if function_name is not None:
+            extra["FunctionName"] = function_name
 
         function = template.add_resource(
             awslambda.Function(
