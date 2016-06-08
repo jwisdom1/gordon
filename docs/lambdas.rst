@@ -87,6 +87,7 @@ The following is the anatomy of a lambda in gordon.
       timeout: { NUMBER }
       runtime: { RUNTIME_NAME }
       description: { STRING }
+      function-name: { STRING }
       build: { STRING }
       role: { MAP }
       vpc: { STRING }
@@ -305,6 +306,25 @@ Description                  Human-readable description for your lambda.
     hello_world:
       code: functions.py
       description: This is a really simple function which says hello
+
+
+function-name
+^^^^^^^^^^^^^^^^^^^^^^
+
+===========================  ============================================================================================================
+Name                         ``function-name``
+Required                     No
+Default                      *Empty*
+Valid types                  ``string``, ``reference``
+Description                  Base function name to upload to AWS
+===========================  ============================================================================================================
+
+.. code-block:: yaml
+
+  lambdas:
+    hello_world:
+      code: functions.py
+      function-name: goodbye_world
 
 
 .. _lambda-build:
