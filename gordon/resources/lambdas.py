@@ -205,19 +205,18 @@ class Lambda(base.BaseResource):
 
         function_name = self.settings.get('function-name')
 
-        def _join_env_refs(value):
-            return troposphere.Join(
-                "-",
-                [
-                    value,
-                    troposphere.Ref("Stage"),
-                    troposphere.Ref(troposphere.AWS_REGION)
-                ])
+        def _join_env_refs(*values):
+            values = list(values)
+            values.append(troposphere.Ref("Stage"))
+            values.append(troposphere.Ref(troposphere.AWS_REGION))
+            return troposphere.Join("-", values)
 
         if isinstance(function_name, six.string_types):
             return _join_env_refs(utils.valid_cloudformation_name(self.app.name, function_name))
         elif isinstance(function_name, troposphere.Ref):
-            return _join_env_refs(function_name)
+            return _join_env_refs(
+                    utils.valid_cloudformation_name(self.app.name),
+                    function_name)
         elif function_name is None:
             pass
         else:
