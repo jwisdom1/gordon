@@ -212,7 +212,9 @@ class Lambda(base.BaseResource):
             return troposphere.Join("-", values)
 
         if isinstance(function_name, six.string_types):
-            return _join_env_refs(utils.valid_cloudformation_name(self.app.name, function_name))
+            return _join_env_refs(
+                    utils.valid_cloudformation_name(self.app.name),
+                    utils.valid_cloudformation_name(function_name))
         elif isinstance(function_name, troposphere.Ref):
             return _join_env_refs(
                     utils.valid_cloudformation_name(self.app.name),
